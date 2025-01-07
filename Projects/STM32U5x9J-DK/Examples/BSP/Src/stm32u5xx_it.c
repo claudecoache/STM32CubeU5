@@ -148,6 +148,7 @@ void SysTick_Handler(void)
 /*  file (startup_stm32u5xx.s).                                               */
 /******************************************************************************/
 
+#if 0
 /**
   * @brief  This function handles GFXMMU interrupt request.
   * @param  None
@@ -157,7 +158,7 @@ void GFXMMU_IRQHandler(void)
 {
   HAL_GFXMMU_IRQHandler(&hlcd_gfxmmu);
 }
-
+#endif
 /**
   * @brief  This function handles LTDC interrupt request.
   * @param  None

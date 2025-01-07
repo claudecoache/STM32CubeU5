@@ -78,7 +78,7 @@ extern const unsigned char back[7986UL + 1];
 
 /* Exported functions ------------------------------------------------------- */
 int32_t OSPI_RAM_demo(void);
-int32_t Lcd_demo(void);
+int32_t Lcd_demo(uint32_t argbColor, uint32_t xPos, uint32_t yPos);
 int32_t OSPI_NOR_demo (void);
 int32_t eMMC_demo (void);
 int32_t Led_demo (void);

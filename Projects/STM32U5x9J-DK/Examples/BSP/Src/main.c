@@ -17,6 +17,8 @@
   */
 
 /* Includes ------------------------------------------------------------------*/
+#include <stdbool.h>
+
 #include "main.h"
 #include "hexagone.h"
 #include "back.h"
@@ -49,17 +51,38 @@ static void SystemClock_Config(void);
 static void Flush_scanf(void);
 static void LCD_Init(void);
 
-uint8_t DrawBackround = 0;
 uint8_t AutoMode = 0;
 TS_State_t TS_State;
 TS_Init_t TsInit;
 LCD_UTILS_Drv_t pDrv;
-__IO uint16_t x = 0;
-__IO uint16_t y = 0;
+__IO uint16_t x = 0;    // Touch x position
+__IO uint16_t y = 0;    // Touch y position
 uint16_t demo_xpos;
 uint16_t demo_ypos;
 
 /* Private functions ---------------------------------------------------------*/
+
+void drawMatrix (void)
+{
+    uint32_t xPosition, yPosition;
+
+    //  Draw horizontal lines
+    xPosition = 0;
+    yPosition = 0;
+    while(yPosition < LCD_HEIGHT)
+    {
+        BSP_LCD_DrawHLine (0, xPosition, yPosition, LCD_WIDTH, UTIL_LCD_COLOR_BLACK);
+        yPosition += 61;
+    }
+
+    xPosition = 0;
+    yPosition = 0;
+    while(xPosition < LCD_WIDTH)
+    {
+        BSP_LCD_DrawVLine (0, xPosition, yPosition, LCD_HEIGHT, UTIL_LCD_COLOR_BLACK);
+        xPosition += 80;
+    }
+}
 
 /**
   * @brief  Main program
@@ -68,10 +91,19 @@ uint16_t demo_ypos;
   */
 int main(void)
 {
+    uint32_t    color = LCD_COLOR_BLUE; // Set to the last color
+    uint32_t    startTime;
+    uint32_t    currentTime;
+    uint32_t    bitmapPosx = 0;
+    uint32_t    bitmapPosy = 2;
+    bool        autoIncrement;
+
+#if (SEMIHOSTING == 1)
 #if (defined (__GNUC__) && !defined(__ARMCC_VERSION))
   initialise_monitor_handles();
   printf("Semihosting Test...\n\r");
 #endif
+#endif  // #if SEMIHOSTING == 1
 
   HAL_Init();
 
@@ -89,108 +121,79 @@ int main(void)
   /* LCD and TouchScreen initialization */
   LCD_Init();
 
-  /* Background status */
-  DrawBackround = 1;
-
   while (1)
   {
-    /* Re-draw the background after return from each module */
-    if(DrawBackround == 0)
-    {
-      BSP_LCD_DrawBitmap(0, 0, 0, (uint8_t *)hexagone);
 
-      DrawBackround = 1;
+    if (Lcd_demo (color, bitmapPosx, bitmapPosy) != 0)
+    {
+      Error_Handler();
     }
-    if(TS_State.TouchDetected)
+
+    drawMatrix ();
+
+    startTime = currentTime = HAL_GetTick();
+
+    autoIncrement = true;
+    while ((currentTime - startTime) < 5000 )
     {
-      /* Get X and Y position of the touch post calibrated */
-      demo_xpos = x;
-      demo_ypos = y;
+        currentTime = HAL_GetTick();
 
-      /* Initialize touch coordinates */
-      TS_State.TouchDetected = 0;
+        if (TS_State.TouchDetected)
+        {
+            TS_State.TouchDetected = 0;
+            autoIncrement = false;
 
-      /* Launch Led demo */
-      if ((demo_xpos > 295) & (demo_xpos < 435) & (demo_ypos > 120) & (demo_ypos < 260))
-      {
-        demo_xpos = 0;
-        demo_ypos = 0;
-        if (Led_demo() != 0)
-        {
-          Error_Handler();
+            // Verify the x and y position
+            demo_xpos = 0;
+            demo_ypos = 0;
+            break;
         }
-      }
-      /* Launch OSPI demo */
-      if ((demo_xpos > 32) & (demo_xpos < 175) & (demo_ypos > 0) & (demo_ypos < 120))
-      {
-        demo_xpos = 0;
-        demo_ypos = 0;
-        if (OSPI_NOR_demo() != 0)
-        {
-          Error_Handler();
-        }
-      }
-      /* Launch ToF demo */
-      if ((demo_xpos > 32) & (demo_xpos < 175) & (demo_ypos > 120) & (demo_ypos < 260))
-      {
-        demo_xpos = 0;
-        demo_ypos = 0;
-        if (Rs_demo() != 0)
-        {
-          Error_Handler();
-        }
-      }
-      /* Launch eMMC demo */
-      if ((demo_xpos > 175) & (demo_xpos < 295) & (demo_ypos > 50) & (demo_ypos < 190))
-      {
-        demo_xpos = 0;
-        demo_ypos = 0;
-        if (eMMC_demo() != 0)
-        {
-          Error_Handler();
-        }
-      }
-      /* Launch HSPI demo */
-      if ((demo_xpos > 295) & (demo_xpos < 435) & (demo_ypos > 0) & (demo_ypos < 120))
-      {
-        demo_xpos = 0;
-        demo_ypos = 0;
-        if (OSPI_RAM_demo() != 0)
-        {
-          Error_Handler();
-        }
-      }
-      /* Launch TouchScreen demo */
-      if ((demo_xpos > 155) & (demo_xpos < 295) & (demo_ypos > 190) & (demo_ypos < 335))
-      {
-        demo_xpos = 0;
-        demo_ypos = 0;
-        if (Touchscreen_demo() != 0)
-        {
-          Error_Handler();
-        }
-      }
-      /* Launch Lcd demo */
-      if ((demo_xpos > 155) & (demo_xpos < 295) & (demo_ypos > 355) & (demo_ypos < 480))
-      {
-        demo_xpos = 0;
-        demo_ypos = 0;
-        if (Lcd_demo() != 0)
-        {
-          Error_Handler();
-        }
-      }
+    }
 
-      /* Launch ES demo */
-      if ((demo_xpos > 32) & (demo_xpos < 175) & (demo_ypos > 260) & (demo_ypos < 400))
-      {
-        demo_xpos = 0;
-        demo_ypos = 0;
-        if (Es_demo() != 0)
+    if (autoIncrement)
+    {
+        bitmapPosx += 80;
+        if ((bitmapPosx + 80) > LCD_WIDTH)
         {
-          Error_Handler();
+            bitmapPosx = 0;
+
+            bitmapPosy += 61;
+            if ((bitmapPosy + 57) > LCD_HEIGHT)
+            {
+                bitmapPosy = 2;
+            }
         }
-      }
+    }
+    else
+    {
+        bitmapPosx = (x / 80) * 80;
+        bitmapPosy = (y / 61) * 61 + 2;
+    }
+
+    // Should create a color table but for now, only verify to get the next
+    if (color == LCD_COLOR_BLUE)
+    {
+        color = LCD_COLOR_GREEN;
+    }
+    else if (color == LCD_COLOR_GREEN)
+    {
+        color = LCD_COLOR_RED;
+    }
+    else if (color == LCD_COLOR_RED)
+    {
+        color = LCD_COLOR_CYAN;
+    }
+    else if (color == LCD_COLOR_CYAN)
+    {
+        color = LCD_COLOR_MAGENTA;
+    }
+    else if (color == LCD_COLOR_MAGENTA)
+    {
+        color = LCD_COLOR_YELLOW;
+    }
+    else if (color == LCD_COLOR_YELLOW)
+    {
+        color = LCD_COLOR_BLUE;
     }
   }
 }
@@ -281,13 +284,11 @@ void LCD_Init(void)
   BSP_LCD_DisplayOn(0);
 
   /* Clear the LCD */
-  BSP_LCD_FillRect(0, 0, 0, 480, 480, LCD_COLOR_WHITE);
-
-  BSP_LCD_DrawBitmap(0, 0, 0, (uint8_t *)hexagone);
+  BSP_LCD_FillRect(0, 0, 0, LCD_WIDTH, LCD_HEIGHT, LCD_COLOR_WHITE);
 
   /* Initialize the TouchScreen */
-  TsInit.Width       = 480;
-  TsInit.Height      = 480;
+  TsInit.Width       = LCD_WIDTH;
+  TsInit.Height      = LCD_HEIGHT;
   TsInit.Orientation = TS_ORIENTATION_PORTRAIT;
   TsInit.Accuracy    = 0;
   BSP_TS_Init(0, &TsInit);
@@ -402,7 +403,8 @@ void HAL_GPIO_EXTI_Falling_Callback(uint16_t GPIO_Pin)
   TS_State.TouchX = 0;
   TS_State.TouchY = 0;
 
-
+#if 0
+  // Do not understand why calling TS on VL53L5A1_INT_PIN
   if (GPIO_Pin == VL53L5A1_INT_PIN)
   {
     if (BSP_TS_GetState(0, &TS_State) != BSP_ERROR_NONE)
@@ -410,6 +412,7 @@ void HAL_GPIO_EXTI_Falling_Callback(uint16_t GPIO_Pin)
       Error_Handler();
     }
   }
+#endif
 }
 
 /**
