@@ -126,3 +126,6 @@
 	path = Drivers/BSP/Components/aps6408
 	url = https://github.com/STMicroelectronics/stm32-aps6408
 	branch = main
+[submodule "Drivers/BSP/STM32U5x9J-DK"]
+	path = Drivers/BSP/STM32U5x9J-DK
+	url = https://github.com/claudecoache/stm32u5x9j-dk-bsp.git
