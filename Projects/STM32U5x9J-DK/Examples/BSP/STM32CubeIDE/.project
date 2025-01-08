@@ -523,6 +523,16 @@
 			<locationURI>PARENT-5-PROJECT_LOC/Drivers/BSP/Components/aps512xx/aps512xx.c</locationURI>
 		</link>
 		<link>
+			<name>Drivers/BSP/Components/chsc6540.c</name>
+			<type>1</type>
+			<locationURI>PARENT-5-PROJECT_LOC/Drivers/BSP/Components/chsc6540/chsc6540.c</locationURI>
+		</link>
+		<link>
+			<name>Drivers/BSP/Components/chsc6540_reg.c</name>
+			<type>1</type>
+			<locationURI>PARENT-5-PROJECT_LOC/Drivers/BSP/Components/chsc6540/chsc6540_reg.c</locationURI>
+		</link>
+		<link>
 			<name>Drivers/BSP/Components/mx25um51245g.c</name>
 			<type>1</type>
 			<locationURI>PARENT-5-PROJECT_LOC/Drivers/BSP/Components/mx25um51245g/mx25um51245g.c</locationURI>
