@@ -129,3 +129,6 @@
 [submodule "Drivers/BSP/STM32U5x9J-DK"]
 	path = Drivers/BSP/STM32U5x9J-DK
 	url = https://github.com/claudecoache/stm32u5x9j-dk-bsp.git
+[submodule "Drivers/BSP/Components/chsc6540"]
+	path = Drivers/BSP/Components/chsc6540
+	url = https://github.com/claudecoache/chsc6540.git
