@@ -402,7 +402,11 @@ void UTIL_LCD_DisplayStringAt(uint32_t Xpos, uint32_t Ypos, uint8_t *Text, Text_
   uint8_t  *ptr = Text;
 
   /* Get the text size */
-  while (*ptr++) size ++ ;
+  while (*ptr)
+  {
+      ptr++;
+      size++;
+  }
 
   /* Characters number per line */
   xsize = (DrawProp->LcdXsize/DrawProp[DrawProp->LcdLayer].pFont->Width);
